@@ -43,7 +43,7 @@ public class Turret : MonoBehaviour
         }
     }
 
-    private void TurnTowardsPlayer()
+    private void Turn()
     {
         // Calculate the direction to the player and rotate the turret
         Vector2 directionToPlayer = playerTransform.position - transform.position;
