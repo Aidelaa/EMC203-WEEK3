@@ -52,17 +52,17 @@ public class Turret : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
-    private bool FireAtPlayer()
-    {
-        // Check if the player is within range, within the firing angle, and cooldown has elapsed
-        return PlayerInRange() && FiringAngle() && Time.time >= fireTime + fireCooldown;
-    }
-
     private bool PlayerInRange()
     {
         // Check if the player is within the firing range
         float distance = Vector2.Distance(playerTransform.position, transform.position);
         return distance <= fireRange;
+    }
+
+    private bool FireAtPlayer()
+    {
+        // Check if the player is within range, within the firing angle, and cooldown has elapsed
+        return PlayerInRange() && FiringAngle() && Time.time >= fireTime + fireCooldown;
     }
 
     private bool FiringAngle()
