@@ -3,51 +3,72 @@ using UnityEngine.SceneManagement;
 
 public class TurretBehavior : MonoBehaviour
 {
+    [Header("Turret Settings")]
     [SerializeField] private float rotationSpeed = 5f; // Rotation speed of the turret
     [SerializeField] private float fireRange = 10f; // Range to detect the player
     [SerializeField] private float fireCooldown = 1f; // Time cooldown between shots
-    [SerializeField] private GameObject projectilePrefab; // Projectile to be fired
-    [SerializeField] private Transform firePoint; // Point where the projectile is fired from
-    [SerializeField] private float projectileSpeed = 10f; // Speed of the projectile
-    [SerializeField] private float restartDistance = 1f; // Distance at which to restart the scene
     [SerializeField] private float firingAngleThreshold = 10f; // Angle threshold for firing
 
-    private float lastFireTime = 0f; // Last time the turret fired
+    [Header("Projectile Settings")]
+    [SerializeField] private GameObject projectileP; // Projectile to be fired
+    [SerializeField] private Transform firePoint; // Point where the projectile is fired from
+    [SerializeField] private float projectileSpeed = 10f; // Speed of the projectile
 
-    private void Update()
+    private Transform playerTransform; // Cached player transform
+    private float fireTime = 0f; // Time when the turret last fired
+
+    private void Start()
     {
+        // Cache the player's transform
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player == null) return;
-
-        // Turn turret towards the player
-        TurnTowardsPlayer(player);
-
-        // Check if the player is within firing range and directly in front of the turret
-        if (IsPlayerInRange(player) && IsPlayerInFiringAngle(player) && Time.time >= lastFireTime + fireCooldown)
+        if (player != null)
         {
-            FireAtPlayer(player);
+            playerTransform = player.transform;
+        }
+        else
+        {
+            Debug.LogWarning("Player not found! Make sure the player object has the 'Player' tag.");
         }
     }
 
-    private void TurnTowardsPlayer(GameObject player)
+    private void Update()
     {
-        // Calculate the direction to the player
-        Vector2 directionToPlayer = player.transform.position - transform.position;
+        if (playerTransform == null) return;
+
+        TurnTowardsPlayer();
+
+        if (FireAtPlayer())
+        {
+            Attack();
+        }
+    }
+
+    private void TurnTowardsPlayer()
+    {
+        // Calculate the direction to the player and rotate the turret
+        Vector2 directionToPlayer = playerTransform.position - transform.position;
         float angle = Mathf.Atan2(directionToPlayer.y, directionToPlayer.x) * Mathf.Rad2Deg;
-        Quaternion targetRotation = Quaternion.Euler(new Vector3(0, 0, angle)); // Adjust for 2D rotation (Z-axis)
+        Quaternion targetRotation = Quaternion.Euler(new Vector3(0, 0, angle));
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
-    private bool IsPlayerInRange(GameObject player)
+    private bool FireAtPlayer()
     {
-        float distance = Vector2.Distance(player.transform.position, transform.position);
+        // Check if the player is within range, within the firing angle, and cooldown has elapsed
+        return PlayerInRange() && FiringAngle() && Time.time >= fireTime + fireCooldown;
+    }
+
+    private bool PlayerInRange()
+    {
+        // Check if the player is within the firing range
+        float distance = Vector2.Distance(playerTransform.position, transform.position);
         return distance <= fireRange;
     }
 
-    private bool IsPlayerInFiringAngle(GameObject player)
+    private bool FiringAngle()
     {
         // Check if the player is within the specified firing angle
-        Vector2 directionToPlayer = player.transform.position - transform.position;
+        Vector2 directionToPlayer = playerTransform.position - transform.position;
         float angleToPlayer = Mathf.Atan2(directionToPlayer.y, directionToPlayer.x) * Mathf.Rad2Deg;
         float turretAngle = transform.eulerAngles.z;
         float angleDifference = Mathf.Abs(Mathf.DeltaAngle(turretAngle, angleToPlayer));
@@ -55,18 +76,18 @@ public class TurretBehavior : MonoBehaviour
         return angleDifference <= firingAngleThreshold;
     }
 
-    private void FireAtPlayer(GameObject player)
+    private void Attack()
     {
-        // Fire a projectile
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+        // Instantiate and fire the projectile
+        GameObject projectile = Instantiate(projectileP, firePoint.position, firePoint.rotation);
         Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
 
         if (rb != null)
         {
-            Vector2 direction = (player.transform.position - transform.position).normalized;
-            rb.linearVelocity = direction * projectileSpeed; // Using velocity instead of linearVelocity
+            Vector2 direction = (playerTransform.position - transform.position).normalized;
+            rb.linearVelocity = direction * projectileSpeed; // Apply velocity to the projectile
         }
 
-        lastFireTime = Time.time; // Reset fire cooldown
+        fireTime = Time.time; // Update the last fire time
     }
 }

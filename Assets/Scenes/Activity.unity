@@ -196,7 +196,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee, type: 3}
-  m_Color: {r: 0.5975738, g: 0.735849, b: 0.49288, a: 1}
+  m_Color: {r: 0.37615195, g: 0.57232696, b: 0.47786477, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -373,11 +373,10 @@ MonoBehaviour:
   rotationSpeed: 6
   fireRange: 10
   fireCooldown: 3
-  projectilePrefab: {fileID: 7834185741745369224, guid: 84cf40c446bb96948a390eaed3aa68ac, type: 3}
+  firingAngleThreshold: 10
+  projectileP: {fileID: 7834185741745369224, guid: 84cf40c446bb96948a390eaed3aa68ac, type: 3}
   firePoint: {fileID: 1991151468}
   projectileSpeed: 5
-  restartDistance: 5
-  firingAngleThreshold: 10
 --- !u!212 &1991151467
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -423,7 +422,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
-  m_Color: {r: 0.23032393, g: 0.23701248, b: 0.4641509, a: 1}
+  m_Color: {r: 0.408805, g: 0.124698326, b: 0.24220538, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
