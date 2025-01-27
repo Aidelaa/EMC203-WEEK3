@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class ProjectileBehavior : MonoBehaviour
+public class Projectile : MonoBehaviour
 {
     [SerializeField] private float restartDistance = 1f; // Distance at which to restart the scene
     private Transform playerTransform; // Cached reference to the player's transform
