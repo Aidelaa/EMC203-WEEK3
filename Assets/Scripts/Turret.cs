@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class TurretBehavior : MonoBehaviour
+public class Turret : MonoBehaviour
 {
     [Header("Turret Settings")]
     [SerializeField] private float rotationSpeed = 5f; // Rotation speed of the turret
