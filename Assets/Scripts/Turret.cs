@@ -1,93 +1,92 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class Turret : MonoBehaviour
 {
     [Header("Turret Settings")]
-    [SerializeField] private float rotationSpeed = 5f; // Rotation speed of the turret
-    [SerializeField] private float fireRange = 10f; // Range to detect the player
-    [SerializeField] private float fireCooldown = 1f; // Time cooldown between shots
-    [SerializeField] private float firingAngleThreshold = 10f; // Angle threshold for firing
+    [SerializeField] private float rotationSpeed = 5f; // Speed at which the turret rotates
+    [SerializeField] private float detectionRange = 10f; // Distance within which the turret detects the player
+    [SerializeField] private float shotCooldown = 1f; // Time delay between shots
+    [SerializeField] private float firingAngleLimit = 10f; // Angle range within which the turret can fire
 
     [Header("Projectile Settings")]
-    [SerializeField] private GameObject projectileP; // Projectile to be fired
-    [SerializeField] private Transform firePoint; // Point where the projectile is fired from
-    [SerializeField] private float projectileSpeed = 10f; // Speed of the projectile
+    [SerializeField] private GameObject projectilePrefab; // Prefab of the projectile
+    [SerializeField] private Transform projectileSpawnPoint; // Spawn point for the projectile
+    [SerializeField] private float projectileVelocity = 10f; // Speed of the projectile
 
-    private Transform playerTransform; // Cached player transform
-    private float fireTime = 0f; // Time when the turret last fired
+    private Transform player; // Reference to the player's transform
+    private float lastShotTime = 0f; // Time when the turret last fired
 
     private void Start()
     {
-        // Cache the player's transform
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
+        // Locate the player in the scene and cache its transform
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null)
         {
-            playerTransform = player.transform;
+            player = playerObject.transform;
         }
         else
         {
-            Debug.LogWarning("Player not found! Make sure the player object has the 'Player' tag.");
+            Debug.LogWarning("Player object with tag 'Player' not found.");
         }
     }
 
     private void Update()
     {
-        if (playerTransform == null) return;
+        if (player == null) return;
 
-        TurnTowardsPlayer();
+        RotateTowardsPlayer();
 
-        if (FireAtPlayer())
+        if (CanShootAtPlayer())
         {
-            Attack();
+            FireProjectile();
         }
     }
 
-    private void Turn()
+    private void RotateTowardsPlayer()
     {
-        // Calculate the direction to the player and rotate the turret
-        Vector2 directionToPlayer = playerTransform.position - transform.position;
-        float angle = Mathf.Atan2(directionToPlayer.y, directionToPlayer.x) * Mathf.Rad2Deg;
-        Quaternion targetRotation = Quaternion.Euler(new Vector3(0, 0, angle));
+        // Calculate direction to the player and smoothly rotate the turret
+        Vector2 direction = player.position - transform.position;
+        float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
-    private bool PlayerInRange()
+    private bool IsPlayerInRange()
     {
-        // Check if the player is within the firing range
-        float distance = Vector2.Distance(playerTransform.position, transform.position);
-        return distance <= fireRange;
+        // Check if the player is within detection range
+        float distanceToPlayer = Vector2.Distance(player.position, transform.position);
+        return distanceToPlayer <= detectionRange;
     }
 
-    private bool FireAtPlayer()
+    private bool IsPlayerWithinFiringAngle()
     {
-        // Check if the player is within range, within the firing angle, and cooldown has elapsed
-        return PlayerInRange() && FiringAngle() && Time.time >= fireTime + fireCooldown;
-    }
-
-    private bool FiringAngle()
-    {
-        // Check if the player is within the specified firing angle
-        Vector2 directionToPlayer = playerTransform.position - transform.position;
-        float angleToPlayer = Mathf.Atan2(directionToPlayer.y, directionToPlayer.x) * Mathf.Rad2Deg;
+        // Check if the player is within the firing angle
+        Vector2 direction = player.position - transform.position;
+        float playerAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         float turretAngle = transform.eulerAngles.z;
-        float angleDifference = Mathf.Abs(Mathf.DeltaAngle(turretAngle, angleToPlayer));
+        float angleDifference = Mathf.Abs(Mathf.DeltaAngle(turretAngle, playerAngle));
 
-        return angleDifference <= firingAngleThreshold;
+        return angleDifference <= firingAngleLimit;
     }
 
-    private void Attack()
+    private bool CanShootAtPlayer()
     {
-        // Instantiate and fire the projectile
-        GameObject projectile = Instantiate(projectileP, firePoint.position, firePoint.rotation);
+        // Determine if the turret can shoot based on range, angle, and cooldown
+        return IsPlayerInRange() && IsPlayerWithinFiringAngle() && Time.time >= lastShotTime + shotCooldown;
+    }
+
+    private void FireProjectile()
+    {
+        // Spawn and fire a projectile towards the player
+        GameObject projectile = Instantiate(projectilePrefab, projectileSpawnPoint.position, projectileSpawnPoint.rotation);
         Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
 
         if (rb != null)
         {
-            Vector2 direction = (playerTransform.position - transform.position).normalized;
-            rb.linearVelocity = direction * projectileSpeed; // Apply velocity to the projectile
+            Vector2 fireDirection = (player.position - transform.position).normalized;
+            rb.velocity = fireDirection * projectileVelocity; // Apply velocity to the projectile
         }
 
-        fireTime = Time.time; // Update the last fire time
+        lastShotTime = Time.time; // Update the cooldown timer
     }
 }
